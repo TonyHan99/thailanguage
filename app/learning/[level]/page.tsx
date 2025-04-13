@@ -37,10 +37,13 @@ export default function LearningPage({ params }: { params: { level: string } }) 
     const gender = localStorage.getItem('userGender') as 'male' | 'female'
     const order = searchParams.get('order') || 'sequential'
 
-    if (gender) {
+    if (gender || params.level === '0') {  // Allow Level 0 without gender
       setUserGender(gender)
-      loadThaiData().then(allData => {
-        const filteredData = allData.filter(phrase => phrase.gender === gender)
+      loadThaiData(params.level).then(allData => {
+        // Apply gender filter only for levels 1 and 2
+        const filteredData = params.level === '0' 
+          ? allData 
+          : allData.filter(phrase => phrase.gender === gender)
         console.log("Filtered data:", filteredData)
         
         // Shuffle data if order is random
@@ -50,7 +53,7 @@ export default function LearningPage({ params }: { params: { level: string } }) 
         if (orderedData.length > 0) {
           setPhrases(orderedData)
         } else {
-          console.error("No data found for the selected gender:", gender)
+          console.error("No data found for the selected level:", params.level)
           // Consider adding user feedback here
         }
       }).catch(error => {
@@ -59,10 +62,9 @@ export default function LearningPage({ params }: { params: { level: string } }) 
       })
     } else {
       console.warn("User gender not found in localStorage. Redirecting...")
-      // Optionally redirect to gender selection
-      // router.push('/gender-selection')
+      router.push('/gender-selection')
     }
-  }, [searchParams])
+  }, [searchParams, params.level, router])
 
   const currentPhrase = phrases[currentIndex]
 
@@ -133,33 +135,14 @@ export default function LearningPage({ params }: { params: { level: string } }) 
           </h2>
 
           <div className="space-y-5">
-            {/* Level 2 Input Field */}
-            {params.level === '2' && !showAnswer && (
-              <div className="mt-4">
-                <input
-                  type="text"
-                  value={userAnswer}
-                  onChange={(e) => setUserAnswer(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      handleShowAnswer();
-                    }
-                  }}
-                  placeholder="Type the Thai phrase here..."
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition duration-150 ease-in-out text-gray-900"
-                  aria-label="Thai input"
-                />
-              </div>
-            )}
-
             {/* Answer Section */} 
             {showAnswer ? (
               <div className={`mt-4 p-4 rounded-lg ${isCorrect === true ? 'bg-green-50 border border-green-200' : isCorrect === false ? 'bg-red-50 border border-red-200' : 'bg-gray-100 border border-gray-200'}`}>
                 <p className="text-lg sm:text-xl font-medium text-gray-700">
                   <span className="font-semibold text-gray-500">Pronunciation:</span> {currentPhrase.pronunciation}
                 </p>
-                {/* Show Thai text only in Level 2 */} 
-                {params.level === '2' && (
+                {/* Show Thai text only in Level 0 and 2 */} 
+                {(params.level === '0' || params.level === '2') && (
                   <p className="text-lg sm:text-xl font-medium mt-2 text-gray-700">
                     <span className="font-semibold text-gray-500">Thai:</span> {currentPhrase.thai}
                   </p>
@@ -167,18 +150,38 @@ export default function LearningPage({ params }: { params: { level: string } }) 
                 {/* Correct/Incorrect Feedback for Level 2 */}
                 {params.level === '2' && isCorrect !== null && (
                   <p className={`mt-3 text-base font-semibold ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
-                    {isCorrect ? 'Correct! 👍' : 'Incorrect.'}
+                    {isCorrect ? 'Correct! 👍' : 'Incorrect. Try again!'}
                   </p>
                 )}
               </div>
             ) : (
-              /* Apple-style Secondary Button */
-              <button
-                onClick={handleShowAnswer}
-                className="w-full bg-gray-200 hover:bg-gray-300 text-primary font-semibold py-3 px-6 rounded-lg transition-colors duration-150 ease-in-out text-base sm:text-lg shadow-sm"
-              >
-                Show Answer
-              </button>
+              <div className="space-y-4">
+                {/* Input field for Level 2 */}
+                {params.level === '2' && (
+                  <div className="mt-4">
+                    <input
+                      type="text"
+                      value={userAnswer}
+                      onChange={(e) => setUserAnswer(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          handleShowAnswer();
+                        }
+                      }}
+                      placeholder="Type the Thai phrase here..."
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition duration-150 ease-in-out text-gray-900"
+                      aria-label="Thai input"
+                    />
+                  </div>
+                )}
+                {/* Show Answer Button */}
+                <button
+                  onClick={handleShowAnswer}
+                  className="w-full bg-gray-200 hover:bg-gray-300 text-primary font-semibold py-3 px-6 rounded-lg transition-colors duration-150 ease-in-out text-base sm:text-lg shadow-sm"
+                >
+                  {params.level === '2' ? 'Check Answer' : 'Show Answer'}
+                </button>
+              </div>
             )}
           </div>
         </div>

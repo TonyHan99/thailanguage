@@ -2,12 +2,13 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 export default function LevelSelection() {
   const router = useRouter()
   const [learningOrder, setLearningOrder] = useState<'sequential' | 'random'>('sequential')
 
-  const handleLevelSelect = (level: '1' | '2') => {
+  const handleLevelSelect = (level: '0' | '1' | '2') => {
     router.push(`/learning/${level}?order=${learningOrder}`)
   }
 
@@ -44,21 +45,29 @@ export default function LevelSelection() {
           
           <hr className="my-6 sm:my-8 border-gray-200" />
           
-          <div className="space-y-3">
-            <h2 className="text-lg sm:text-xl font-semibold mb-4 text-gray-700 text-center">Select Level</h2>
+          <div className="flex flex-col space-y-4 w-full max-w-md">
             <button
-              onClick={() => handleLevelSelect('1')}
-              className="w-full bg-primary hover:bg-primary-hover text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-150 ease-in-out text-base sm:text-lg shadow-sm"
+              onClick={() => handleLevelSelect('0')}
+              className="w-full py-4 px-6 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200 shadow-md"
             >
-              Level 1: Pronunciation Focus
+              Level 0: Basic Voca I
             </button>
-            
-            <button
-              onClick={() => handleLevelSelect('2')}
-              className="w-full bg-primary hover:bg-primary-hover text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-150 ease-in-out text-base sm:text-lg shadow-sm"
-            >
-              Level 2: Reading & Writing
-            </button>
+            <div className="space-y-3">
+              <h2 className="text-lg sm:text-xl font-semibold mb-4 text-gray-700 text-center">Select Level</h2>
+              <button
+                onClick={() => handleLevelSelect('1')}
+                className="w-full bg-primary hover:bg-primary-hover text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-150 ease-in-out text-base sm:text-lg shadow-sm"
+              >
+                Level 1: Pronunciation Focus
+              </button>
+              
+              <button
+                onClick={() => handleLevelSelect('2')}
+                className="w-full bg-primary hover:bg-primary-hover text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-150 ease-in-out text-base sm:text-lg shadow-sm"
+              >
+                Level 2: Reading & Writing
+              </button>
+            </div>
           </div>
         </div>
       </div>

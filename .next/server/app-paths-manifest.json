@@ -1,6 +1,6 @@
 {
   "/page": "app/page.js",
   "/gender-selection/page": "app/gender-selection/page.js",
-  "/level-selection/page": "app/level-selection/page.js",
-  "/learning/[level]/page": "app/learning/[level]/page.js"
+  "/learning/[level]/page": "app/learning/[level]/page.js",
+  "/level-selection/page": "app/level-selection/page.js"
 }
