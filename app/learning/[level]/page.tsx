@@ -187,23 +187,66 @@ export default function LearningPage({ params }: { params: { level: string } }) 
         </div>
 
         {/* Navigation Buttons */}
-        <div className="flex justify-between space-x-3">
-          {/* Apple-style Gray Button */}
-          <button
-            onClick={handlePrevious}
-            disabled={currentIndex === 0}
-            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm text-base"
-          >
-            Previous
-          </button>
-          {/* Apple-style Primary Button */}
-          <button
-            onClick={handleNext}
-            disabled={currentIndex === phrases.length - 1}
-            className="flex-1 bg-primary hover:bg-primary-hover text-white font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm text-base"
-          >
-            Next
-          </button>
+        <div className="flex flex-col space-y-4">
+          {/* Quick Navigation */}
+          <div className="flex items-center justify-center space-x-4 mb-4">
+            <input
+              type="number"
+              value={currentIndex + 1}
+              onChange={(e) => {
+                const newIndex = parseInt(e.target.value) - 1;
+                if (newIndex >= 0 && newIndex < phrases.length) {
+                  setCurrentIndex(newIndex);
+                  resetStateForNextPhrase();
+                }
+              }}
+              className="w-20 p-2 border border-gray-300 rounded-lg text-center"
+              min="1"
+              max={phrases.length}
+            />
+            <span className="text-gray-500">/ {phrases.length}</span>
+          </div>
+          
+          {/* Quick Jump Buttons */}
+          <div className="flex flex-wrap justify-center gap-2 mb-4">
+            {Array.from({ length: Math.ceil(phrases.length / 50) }, (_, i) => (
+              <button
+                key={i}
+                onClick={() => {
+                  const newIndex = i * 50;
+                  if (newIndex < phrases.length) {
+                    setCurrentIndex(newIndex);
+                    resetStateForNextPhrase();
+                  }
+                }}
+                className={`px-3 py-1 rounded-lg text-sm ${
+                  Math.floor(currentIndex / 50) === i
+                    ? 'bg-primary text-white'
+                    : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
+                }`}
+              >
+                {i * 50 + 1}
+              </button>
+            ))}
+          </div>
+
+          {/* Previous/Next Buttons */}
+          <div className="flex space-x-4">
+            <button
+              onClick={handlePrevious}
+              disabled={currentIndex === 0}
+              className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm text-base"
+            >
+              Previous
+            </button>
+            <button
+              onClick={handleNext}
+              disabled={currentIndex === phrases.length - 1}
+              className="flex-1 bg-primary hover:bg-primary-hover text-white font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm text-base"
+            >
+              Next
+            </button>
+          </div>
         </div>
       </div>
     </div>
