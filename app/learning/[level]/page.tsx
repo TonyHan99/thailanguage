@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ThaiPhrase, loadThaiData } from '@/app/utils/data'
+import { speakThai } from '@/app/utils/speech'
 
 // Fisher-Yates (aka Knuth) Shuffle function
 function shuffleArray<T>(array: T[]): T[] {
@@ -23,6 +24,24 @@ function shuffleArray<T>(array: T[]): T[] {
   return newArray;
 }
 
+// SpeakerIcon 컴포넌트 추가
+const SpeakerIcon = ({ className = "h-6 w-6" }: { className?: string }) => (
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    className={className}
+    fill="none" 
+    viewBox="0 0 24 24" 
+    stroke="currentColor"
+  >
+    <path 
+      strokeLinecap="round" 
+      strokeLinejoin="round" 
+      strokeWidth={2} 
+      d="M15.536 8.464a5 5 0 010 7.072M17.95 6.05a8 8 0 010 11.9M6.5 8.788v6.424m4.788-11.212v16h-.017m-8.771-8h3.635" 
+    />
+  </svg>
+);
+
 export default function LearningPage({ params }: { params: { level: string } }) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -30,8 +49,9 @@ export default function LearningPage({ params }: { params: { level: string } }) 
   const [currentIndex, setCurrentIndex] = useState(0)
   const [showAnswer, setShowAnswer] = useState(false)
   const [userGender, setUserGender] = useState<'male' | 'female' | null>(null)
-  const [userAnswer, setUserAnswer] = useState('') // State for user input in Level 2
-  const [isCorrect, setIsCorrect] = useState<boolean | null>(null) // State for answer correctness
+  const [userAnswer, setUserAnswer] = useState('')
+  const [isCorrect, setIsCorrect] = useState<boolean | null>(null)
+  const [isPlaying, setIsPlaying] = useState(false)
 
   useEffect(() => {
     const gender = localStorage.getItem('userGender') as 'male' | 'female'
@@ -101,6 +121,17 @@ export default function LearningPage({ params }: { params: { level: string } }) 
       }
   }
 
+  // 발음 재생 함수
+  const handleSpeak = (text: string) => {
+    if (isPlaying) return; // 이미 재생 중이면 중복 실행 방지
+    
+    setIsPlaying(true);
+    speakThai(text);
+    
+    // 재생이 끝나면 상태 초기화 (약 2초 후)
+    setTimeout(() => setIsPlaying(false), 2000);
+  };
+
   // Loading state more robust
   if (!userGender || phrases.length === 0) {
     return (
@@ -138,15 +169,22 @@ export default function LearningPage({ params }: { params: { level: string } }) 
             {/* Answer Section */} 
             {showAnswer ? (
               <div className={`mt-4 p-4 rounded-lg ${isCorrect === true ? 'bg-green-50 border border-green-200' : isCorrect === false ? 'bg-red-50 border border-red-200' : 'bg-gray-100 border border-gray-200'}`}>
-                <p className="text-lg sm:text-xl font-medium text-gray-700">
-                  <span className="font-semibold text-gray-500">Pronunciation:</span> {currentPhrase.pronunciation}
-                </p>
-                {/* Show Thai text only in Level 0 and 2 */} 
-                {(params.level === '0' || params.level === '2') && (
-                  <p className="text-lg sm:text-xl font-medium mt-2 text-gray-700">
+                <div className="flex items-center gap-2">
+                  <p className="text-lg sm:text-xl font-medium text-gray-700">
                     <span className="font-semibold text-gray-500">Thai:</span> {currentPhrase.thai}
                   </p>
-                )}
+                  <button 
+                    onClick={() => handleSpeak(currentPhrase.thai)}
+                    className={`p-2 rounded-full hover:bg-gray-100 transition-colors ${isPlaying ? 'text-primary animate-pulse' : 'text-gray-400'}`}
+                    disabled={isPlaying}
+                    title="발음 듣기"
+                  >
+                    <SpeakerIcon className="h-5 w-5" />
+                  </button>
+                </div>
+                <p className="text-lg sm:text-xl font-medium text-gray-700 mt-2">
+                  <span className="font-semibold text-gray-500">Pronunciation:</span> {currentPhrase.pronunciation}
+                </p>
                 {/* Correct/Incorrect Feedback for Level 2 */}
                 {params.level === '2' && isCorrect !== null && (
                   <p className={`mt-3 text-base font-semibold ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
@@ -200,11 +238,11 @@ export default function LearningPage({ params }: { params: { level: string } }) 
                   resetStateForNextPhrase();
                 }
               }}
-              className="w-20 p-2 border border-gray-300 rounded-lg text-center"
+              className="w-16 p-2 border border-gray-300 rounded-lg text-center"
               min="1"
               max={phrases.length}
             />
-            <span className="text-gray-500">/ {phrases.length}</span>
+            <span className="text-gray-500">of {phrases.length}</span>
           </div>
           
           {/* Quick Jump Buttons */}
@@ -231,18 +269,26 @@ export default function LearningPage({ params }: { params: { level: string } }) 
           </div>
 
           {/* Previous/Next Buttons */}
-          <div className="flex space-x-4">
+          <div className="flex justify-between">
             <button
               onClick={handlePrevious}
               disabled={currentIndex === 0}
-              className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm text-base"
+              className={`px-4 py-2 rounded-lg transition-colors duration-150 ease-in-out ${
+                currentIndex === 0
+                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  : 'bg-primary text-white hover:bg-primary-dark'
+              }`}
             >
               Previous
             </button>
             <button
               onClick={handleNext}
               disabled={currentIndex === phrases.length - 1}
-              className="flex-1 bg-primary hover:bg-primary-hover text-white font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm text-base"
+              className={`px-4 py-2 rounded-lg transition-colors duration-150 ease-in-out ${
+                currentIndex === phrases.length - 1
+                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  : 'bg-primary text-white hover:bg-primary-dark'
+              }`}
             >
               Next
             </button>

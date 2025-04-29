@@ -16,10 +16,8 @@ module.exports = {
       },
       colors: {
         // Apple-inspired color palette
-        primary: { // Blue accent
-          DEFAULT: '#007AFF',
-          hover: '#0070e8',
-        },
+        primary: '#4F46E5',
+        'primary-dark': '#4338CA',
         secondary: { // Muted blue or gray for secondary elements
             DEFAULT: '#8A8A8E', // Mid Gray
             hover: '#A0A0A5'
